@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Дашборд{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title"> Аналитическая панель</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        
+        
+        <div class="row row-deck row-cards">
+            {% include "dashboard/components/stat_card.html" with label="Всего студентов" target_id="stat-students" %}
+            {% include "dashboard/components/stat_card.html" with label="Факультетов" target_id="stat-departments" %}
+            {% include "dashboard/components/stat_card.html" with label="Учебных курсов" target_id="stat-courses" %}
+            {% include "dashboard/components/stat_card.html" with label="Учебных групп" target_id="stat-groups" %}
+        </div>
+
+        
+        <div class="row row-deck row-cards mt-4">
+            {% include "dashboard/components/chart_container.html" with title="Распределение студентов по факультетам" chart_id="chart-departments" %}
+            {% include "dashboard/components/chart_container.html" with title="Топ-5 самых популярных курсов" chart_id="chart-courses" %}
+            {% include "dashboard/components/chart_container.html" with title="Нагрузка на факультеты (студенты vs курсы)" chart_id="chart-faculty-load" %}
+            {% include "dashboard/components/chart_container.html" with title="Активность студентов (курсов на студента)" chart_id="chart-courses-dist" %}
+            {% include "dashboard/components/chart_container.html" with title="Топ-10 учебных групп по численности" chart_id="chart-top-groups" %}
+        </div>
+
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('{% url "dashboard_api" %}')
+        .then(r => r.json())
+        .then(data => {
+            
+            const animateValue = (id, start, end, duration) => {
+                const obj = document.getElementById(id);
+                if (!obj || end === 0) { if (obj) obj.innerHTML = 0; return; }
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    obj.innerHTML = Math.floor(progress * (end - start) + start);
+                    if (progress < 1) window.requestAnimationFrame(step);
+                };
+                window.requestAnimationFrame(step);
+            };
+
+            animateValue("stat-students", 0, data.summary.students, 1200);
+            animateValue("stat-departments", 0, data.summary.departments, 1200);
+            animateValue("stat-courses", 0, data.summary.courses, 1200);
+            animateValue("stat-groups", 0, data.summary.groups, 1200);
+
+            
+            const commonOptions = { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            };
+
+            new Chart(document.getElementById('chart-departments'), {
+                type: 'bar',
+                data: {
+                    labels: data.department_distribution.map(d => d.name),
+                    datasets: [{ label: 'Студентов', data: data.department_distribution.map(d => d.student_count), backgroundColor: '#206bc4' }]
+                },
+                options: { ...commonOptions, plugins: { legend: { display: false } } }
+            });
+
+            new Chart(document.getElementById('chart-courses'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.top_courses.map(c => c.title.length > 20 ? c.title.substring(0, 20) + '...' : c.title),
+                    datasets: [{ data: data.top_courses.map(c => c.student_count), backgroundColor: ['#206bc4', '#d63939', '#f59f00', '#2fb344', '#79a6f2'] }]
+                },
+                options: commonOptions
+            });
+
+            new Chart(document.getElementById('chart-faculty-load'), {
+                type: 'bar',
+                data: {
+                    labels: data.faculty_load.map(f => f.name),
+                    datasets: [
+                        { label: 'Студентов', data: data.faculty_load.map(f => f.student_count), backgroundColor: '#206bc4' },
+                        { label: 'Курсов', data: data.faculty_load.map(f => f.course_count), backgroundColor: '#d63939' }
+                    ]
+                },
+                options: commonOptions
+            });
+
+            new Chart(document.getElementById('chart-courses-dist'), {
+                type: 'bar',
+                data: {
+                    labels: data.courses_distribution.map(d => d.bucket + (d.bucket === '5+' ? ' курсов' : (d.bucket === '1' ? ' курс' : ' курса'))),
+                    datasets: [{ label: 'Студентов', data: data.courses_distribution.map(d => d.count), backgroundColor: '#79a6f2' }]
+                },
+                options: { ...commonOptions, plugins: { legend: { display: false } } }
+            });
+
+            new Chart(document.getElementById('chart-top-groups'), {
+    type: 'bar',
+    data: {
+        labels: data.top_groups.map(g => g.name),
+        datasets: [{ 
+            label: 'Студентов в группе', 
+            data: data.top_groups.map(g => g.student_count), 
+            backgroundColor: '#f59f00' 
+        }]
+    },
+    options: { 
+        indexAxis: 'y',
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { 
+                beginAtZero: true, 
+                ticks: { stepSize: 1 },
+                title: { display: true, text: 'Количество студентов' }
+            },
+            y: {
+                ticks: { autoSkip: false }
+            }
+        }
+    }
+});
+        })
+        .catch(err => console.error("Ошибка загрузки дашборда:", err));
+});
+</script>
+{% endblock %}

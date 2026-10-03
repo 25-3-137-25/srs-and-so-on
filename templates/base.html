@@ -4,6 +4,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <title>
 {% block title %}Учебный портал{% endblock %} · Учебный портал</title>
 <link rel="stylesheet" href="{% static 'vendor/tabler/css/tabler.min.css' %}">
@@ -24,6 +26,7 @@
 <div class="collapse navbar-collapse" id="portal-nav">
 <nav class="navbar-nav me-auto" aria-label="Основная навигация">
 {% with route=request.resolver_match.url_name %}
+<a href="{% url 'dashboard' %}">Дашборд</a>
 <a class="nav-link {% if route == 'profile' %}active{% endif %}" href="{% url 'profile' %}" {% if route == 'profile' %}aria-current="page"{% endif %}>Профиль</a>
 <a class="nav-link {% if 'department' in route %}active{% endif %}" href="{% url 'department_list' %}">Факультеты</a>
 <a class="nav-link {% if 'academic_group' in route %}active{% endif %}" href="{% url 'academic_group_list' %}">Группы</a>

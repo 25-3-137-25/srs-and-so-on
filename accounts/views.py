@@ -20,7 +20,11 @@ from .models import (
  Course,
  Department,
 )
-
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from .models import Department, Course, AcademicGroup, StudentProfile
 
 
 @login_required
@@ -310,3 +314,66 @@ def academic_group_delete(request, pk):
             'deletion_warning': 'Это действие нельзя отменить.'
         }
     )
+
+
+
+@login_required
+@user_passes_test(is_methodist)
+def dashboard_view(request):
+    return render(request, 'dashboard/index.html')
+
+
+@login_required
+@user_passes_test(is_methodist)
+def dashboard_api(request):
+    
+    total_students = StudentProfile.objects.count()
+    total_departments = Department.objects.count()
+    total_groups = AcademicGroup.objects.count()
+    total_courses = Course.objects.count()
+
+    
+    dept_stats = Department.objects.annotate(
+        student_count=Count('students', distinct=True)
+    ).values('name', 'student_count').order_by('-student_count')
+
+   
+    course_stats = Course.objects.annotate(
+        student_count=Count('students', distinct=True)
+    ).order_by('-student_count')[:5].values('title', 'student_count')
+
+    
+    faculty_load = Department.objects.annotate(
+        student_count=Count('students', distinct=True),
+        course_count=Count('courses', distinct=True)
+    ).values('name', 'student_count', 'course_count').order_by('-student_count')
+
+   
+    students_by_courses = {}
+    for profile in StudentProfile.objects.annotate(courses_count=Count('courses')):
+        cnt = profile.courses_count
+        bucket = '5+' if cnt >= 5 else str(cnt)
+        students_by_courses[bucket] = students_by_courses.get(bucket, 0) + 1
+    sorted_buckets = sorted(students_by_courses.keys(), key=lambda x: (len(x), x))
+    courses_distribution = [
+        {'bucket': b, 'count': students_by_courses[b]} for b in sorted_buckets
+    ]
+
+    
+    top_groups = AcademicGroup.objects.annotate(
+        student_count=Count('students', distinct=True)
+    ).order_by('-student_count')[:10].values('name', 'student_count')
+
+    return JsonResponse({
+        'summary': {
+            'students': total_students,
+            'departments': total_departments,
+            'groups': total_groups,
+            'courses': total_courses,
+        },
+        'department_distribution': list(dept_stats),
+        'top_courses': list(course_stats),
+        'faculty_load': list(faculty_load),
+        'courses_distribution': courses_distribution,
+        'top_groups': list(top_groups),
+    })
