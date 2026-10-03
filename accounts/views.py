@@ -7,6 +7,7 @@ from django.shortcuts import (
     redirect,
     render,
 )
+from django.urls import reverse
 from .models import Course
 from .forms import (
     AcademicGroupForm,
@@ -83,6 +84,7 @@ def course_create(request):
         {
             'form': form,
             'title': 'Добавление курса',
+            'cancel_url': reverse('course_list'),
         }
     )
 
@@ -114,6 +116,7 @@ def course_update(request, pk):
         {
             'form': form,
             'title': 'Изменение курса',
+            'cancel_url': reverse('course_list'),
         }
     )
 
@@ -135,6 +138,8 @@ def course_delete(request, pk):
         {
             'object': course,
             'title': 'Удаление курса',
+            'cancel_url': reverse('course_list'),
+            'deletion_warning': 'Это действие нельзя отменить.'
         }
     )
 
@@ -157,6 +162,7 @@ def department_create(request):
         {
             'form': form,
             'title': 'Добавление факультета',
+            'cancel_url': reverse('department_list'),
         }
     )
 
@@ -188,6 +194,7 @@ def department_update(request, pk):
         {
             'form': form,
             'title': 'Изменение факультета',
+            'cancel_url': reverse('department_list'),
         }
     )
 
@@ -209,6 +216,8 @@ def department_delete(request, pk):
         {
             'object': department,
             'title': 'Удаление факультета',
+            'cancel_url': reverse('department_list'),
+            'deletion_warning': 'Связанные курсы и группы также будут удалены.'
         }
     )
 
@@ -243,6 +252,7 @@ def academic_group_create(request):
         {
             'form': form,
             'title': 'Добавление учебной группы',
+            'cancel_url': reverse('academic_group_list'),
         }
     )
 
@@ -274,6 +284,7 @@ def academic_group_update(request, pk):
         {
             'form': form,
             'title': 'Изменение учебной группы',
+            'cancel_url': reverse('academic_group_list'),
         }
     )
 
@@ -295,5 +306,7 @@ def academic_group_delete(request, pk):
         {
             'object': group,
             'title': 'Удаление учебной группы',
+            'cancel_url': reverse('academic_group_list'),
+            'deletion_warning': 'Это действие нельзя отменить.'
         }
     )

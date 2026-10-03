@@ -1,14 +1,12 @@
-body {
- background-color: #f5f5f5;
-}
-.page-container {
- margin-top: 30px;
-}
-.course-card {
- margin-bottom: 20px;
-}
-.user-info {
- padding: 20px;
- background: white;
- border-radius: 8px;
-}
+body { --tblr-font-sans-serif: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.form-panel { max-width: 720px; } .auth-panel { max-width: 440px; margin-block: 3rem; }
+.account-bar, .row-actions, .form-actions { display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; }
+.username { overflow-wrap:anywhere; max-width:16rem; } .entity-name { overflow-wrap:anywhere; min-width:9rem; }
+.description { white-space:pre-wrap; min-width:15rem; max-width:34rem; overflow-wrap:anywhere; }
+.row-actions { min-width:12rem; } .form-panel input:not([type=hidden]), .auth-panel input:not([type=hidden]) { width:100%; }
+.auth-panel input:not([type=hidden]) { border:1px solid var(--tblr-border-color); border-radius:var(--tblr-border-radius); padding:.5625rem .75rem; background:var(--tblr-bg-forms); }
+.auth-panel input:focus-visible { outline:2px solid var(--tblr-primary); outline-offset:2px; }
+.errorlist { margin:0; padding-left:1.25rem; } .skip-link { position:absolute; top:-100px; left:1rem; z-index:2000; padding:.75rem; background:white; } .skip-link:focus { top:1rem; }
+@media(max-width:991.98px) { .account-bar { padding-block:1rem; } }
+@media(max-width:575.98px) { .page-header .col-auto { width:100%; } .page-header .btn { width:100%; } .form-actions > .btn { flex:1 1 auto; } .auth-panel { margin-block:1rem; } .card-body { padding:1rem; } }
+.page-title { white-space:normal; overflow-wrap:anywhere; }

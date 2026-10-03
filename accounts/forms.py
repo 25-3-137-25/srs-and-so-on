@@ -6,6 +6,7 @@ from .models import (
 )
 class DepartmentForm(forms.ModelForm):
     class Meta:
+        labels = {"name": "Название факультета"}
         model = Department
         fields = [
             'name',
@@ -19,6 +20,7 @@ class DepartmentForm(forms.ModelForm):
         }
 class AcademicGroupForm(forms.ModelForm):
    class Meta:
+      labels = {"name": "Название группы", "department": "Факультет"}
       model = AcademicGroup
       fields = [
           'name',
@@ -38,6 +40,7 @@ class AcademicGroupForm(forms.ModelForm):
         }
 class CourseForm(forms.ModelForm):
    class Meta:
+      labels = {"title": "Название курса", "description": "Описание", "department": "Факультет"}
       model = Course
       fields = [
          'title',

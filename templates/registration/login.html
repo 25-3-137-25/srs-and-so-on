@@ -1,25 +1,16 @@
-{% extends 'base.html' %}
-{% block title %}
-Вход
-{% endblock %}
-{% block content %}
-<div class="row justify-content-center">
- <div class="col-md-5">
- <div class="card">
- <div class="card-body">
- <h2 class="card-title mb-4">
- Вход в систему
- </h2>
- <form method="post">
- {% csrf_token %}
- {{ form.as_p }}
- <button class="btn btn-primary"
- type="submit">
- Войти
- </button>
- </form>
- </div>
- </div>
- </div>
+{% extends 'base.html' %}{% block title %}Вход{% endblock %}{% block content %}
+<div class="auth-panel mx-auto">
+<div class="page-pretitle text-center mb-2">Учебный портал</div>
+<h1 class="page-title justify-content-center mb-4">Вход в систему</h1>
+<div class="card">
+<div class="card-body">
+<p class="text-secondary mb-4">Введите данные вашей учётной записи.</p>
+<form method="post">
+{% csrf_token %}{% include 'includes/form_fields.html' %}
+<input type="hidden" name="next" value="{{ next }}">
+<button class="btn btn-primary w-100" type="submit">Войти</button>
+</form>
+</div>
+</div>
 </div>
 {% endblock %}

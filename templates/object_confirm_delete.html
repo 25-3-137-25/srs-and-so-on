@@ -1,34 +1,21 @@
-{% extends 'base.html' %}
-
-{% block content %}
-
+{% extends 'base.html' %}{% block title %}{{ title }}{% endblock %}{% block content %}
+<div class="form-panel mx-auto">
+<h1 class="page-title mb-4">{{ title }}</h1>
 <div class="card">
-    <div class="card-body">
-
-        <h1>
-            {{ title }}
-        </h1>
-
-        <p>
-            Вы действительно хотите удалить
-            <strong>{{ object }}</strong>?
-        </p>
-
-        <form method="post">
-            {% csrf_token %}
-
-            <button class="btn btn-danger"
-                    type="submit">
-                Удалить
-            </button>
-
-            <a class="btn btn-secondary"
-               href="javascript:history.back()">
-                Отмена
-            </a>
-        </form>
-
-    </div>
+<div class="card-status-top bg-danger">
 </div>
-
+<div class="card-body">
+<h2 class="card-title">Подтвердите удаление</h2>
+<p>Вы действительно хотите удалить <strong>{{ object }}</strong>?</p>
+<p class="text-secondary">{{ deletion_warning }}</p>
+<form method="post">
+{% csrf_token %}
+<div class="form-actions">
+<button class="btn btn-danger" type="submit">Удалить</button>
+<a class="btn" href="{{ cancel_url }}">Отмена</a>
+</div>
+</form>
+</div>
+</div>
+</div>
 {% endblock %}

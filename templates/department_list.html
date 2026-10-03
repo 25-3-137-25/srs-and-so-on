@@ -1,60 +1,62 @@
 {% extends 'base.html' %}
-
-{% block title %}
-Факультеты
-{% endblock %}
-
+{% block title %}Факультеты{% endblock %}
 {% block content %}
-
-<div class="d-flex justify-content-between mb-3">
-    <h1>Факультеты</h1>
-
-    {% if is_methodist %}
-    <a class="btn btn-primary" href="/departments/add/">
-        Добавить факультет
-    </a>
-    {% endif %}
+<div class="page-header mb-4">
+<div class="row align-items-center g-3">
+<div class="col">
+<div class="page-pretitle">Учебный портал</div>
+<h1 class="page-title">Факультеты</h1>
 </div>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Название</th>
-
-            {% if is_methodist %}
-            <th>Действия</th>
-            {% endif %}
-        </tr>
-    </thead>
-
-    <tbody>
-        {% for department in departments %}
-        <tr>
-            <td>
-                {{ department.id }}
-            </td>
-
-            <td>
-                {{ department.name }}
-            </td>
-
-            {% if is_methodist %}
-            <td>
-                <a class="btn btn-sm btn-warning"
-                   href="/departments/{{ department.id }}/edit/">
-                    Изменить
-                </a>
-
-                <a class="btn btn-sm btn-danger"
-                   href="/departments/{{ department.id }}/delete/">
-                    Удалить
-                </a>
-            </td>
-            {% endif %}
-        </tr>
-        {% endfor %}
-    </tbody>
+{% if is_methodist %}
+<div class="col-auto">
+<a class="btn btn-primary" href="{% url 'department_create' %}">Добавить факультет</a>
+</div>
+{% endif %}
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">Факультеты <span class="badge bg-primary-lt ms-2">{{ departments|length }}</span>
+</h2>
+</div>
+<div class="table-responsive">
+<table class="table table-vcenter card-table">
+<caption class="visually-hidden">Факультеты</caption>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Название</th>
+{% if is_methodist %}
+<th scope="col">Действия</th>
+{% endif %}
+</tr>
+</thead>
+<tbody>
+{% for item in departments %}
+<tr>
+<td class="">{{ item.id }}</td>
+<td class="entity-name">{{ item.name }}</td>
+{% if is_methodist %}
+<td>
+<div class="row-actions">
+<a class="btn btn-sm btn-outline-primary" href="{% url 'department_update' item.pk %}" aria-label="Изменить {{ item }}">Изменить</a>
+<a class="btn btn-sm btn-outline-danger" href="{% url 'department_delete' item.pk %}" aria-label="Удалить {{ item }}">Удалить</a>
+</div>
+</td>
+{% endif %}
+</tr>
+{% empty %}
+<tr>
+<td colspan="3" class="text-center py-5">
+<p class="fw-bold mb-1">Здесь пока нет записей</p>
+<p class="text-secondary mb-0">
+{% if is_methodist %}Добавьте первую запись кнопкой выше.{% else %}Записи появятся после добавления методистом.{% endif %}
+</p>
+</td>
+</tr>
+{% endfor %}
+</tbody>
 </table>
-
+</div>
+</div>
 {% endblock %}
