@@ -38,5 +38,13 @@ class Ticket(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def allowed_next_statuses(self):
+        transitions = {
+            self.Status.NEW: (self.Status.PROGRESS,),
+            self.Status.PROGRESS: (self.Status.DONE,),
+            self.Status.DONE: (),
+        }
+        return transitions.get(self.status, ())
+
     def __str__(self):
         return self.title

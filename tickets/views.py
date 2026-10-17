@@ -11,7 +11,7 @@ from .serializers import (
     TicketSerializer,
 )
 
-@login_required(login_url="/admin/login/")
+@login_required(login_url="login")
 @ensure_csrf_cookie
 def dashboard(request):
     return render(request, "tickets/dashboard.html")
