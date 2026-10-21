@@ -1,18 +1,61 @@
-{% extends 'base.html' %}{% block title %}{{ title }}{% endblock %}{% block content %}
-<div class="form-panel mx-auto">
-<div class="page-pretitle mb-2">Управление записями</div>
-<h1 class="page-title mb-4">{{ title }}</h1>
-<div class="card">
-<form method="post">
-{% csrf_token %}
-<div class="card-body">
-{% include 'includes/form_fields.html' %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title fw-bold display-6">
+                <!-- Иконка редактирования/добавления -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit me-2 text-primary" width="32" height="32" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+                {{ title }}
+            </h2>
+            <p class="text-muted fs-5">Заполните поля ниже для сохранения изменений</p>
+        </div>
+    </div>
 </div>
-<div class="card-footer form-actions">
-<button class="btn btn-primary" type="submit">Сохранить</button>
-<a class="btn" href="{{ cancel_url }}">Отмена</a>
-</div>
-</form>
-</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <!-- Карточка формы с тенью и скруглением -->
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4 p-md-5">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-2">{{ field.label }}</label>
+
+                        <!-- Поле ввода (скрипт из base.html добавит сюда класс form-control) -->
+                        {{ field }}
+
+                        {% if field.help_text %}
+                        <div class="form-hint text-muted small mt-1">{{ field.help_text }}</div>
+                        {% endif %}
+
+                        {% if field.errors %}
+                        <div class="invalid-feedback d-block mt-1">
+                            {{ field.errors|join:", " }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="form-footer d-flex gap-3 mt-5 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold rounded-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-check me-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+                            Сохранить изменения
+                        </button>
+                        <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-white border px-4 py-2 fw-bold rounded-3">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

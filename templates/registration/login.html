@@ -1,16 +1,53 @@
-{% extends 'base.html' %}{% block title %}Вход{% endblock %}{% block content %}
-<div class="auth-panel mx-auto">
-<div class="page-pretitle text-center mb-2">Учебный портал</div>
-<h1 class="page-title justify-content-center mb-4">Вход в систему</h1>
-<div class="card">
-<div class="card-body">
-<p class="text-secondary mb-4">Введите данные вашей учётной записи.</p>
-<form method="post">
-{% csrf_token %}{% include 'includes/form_fields.html' %}
-<input type="hidden" name="next" value="{{ next }}">
-<button class="btn btn-primary w-100" type="submit">Войти</button>
-</form>
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title>Вход в систему</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta21/dist/css/tabler.min.css">
+</head>
+<body class="border-top-wide border-primary d-flex flex-column">
+<div class="page page-center">
+    <div class="container container-tight py-4">
+        <div class="text-center mb-4">
+            <a href="." class="navbar-brand navbar-brand-autodark">
+                <h1>Учебный Портал МАИ</h1>
+            </a>
+        </div>
+        
+        <div class="card card-md">
+            <div class="card-body">
+                <h2 class="h2 text-center mb-4">Вход в аккаунт</h2>
+                
+                {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                    Неверное имя пользователя или пароль.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+                
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Имя пользователя</label>
+                        <input type="text" name="username" class="form-control" placeholder="Введите логин" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" name="password" class="form-control" placeholder="Введите пароль" required>
+                    </div>
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary w-100">Войти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center text-muted mt-3">
+            Нет аккаунта? <a href="#">Обратитесь к администратору</a>
+        </div>
+    </div>
 </div>
-</div>
-</div>
-{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta21/dist/js/tabler.min.js"></script>
+</body>
+</html>

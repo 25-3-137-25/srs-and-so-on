@@ -1,66 +1,66 @@
-{% extends 'base.html' %}
-{% block title %}Курсы{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Список курсов{% endblock %}
+
 {% block content %}
-<div class="page-header mb-4">
-<div class="row align-items-center g-3">
-<div class="col">
-<div class="page-pretitle">Учебный портал</div>
-<h1 class="page-title">Курсы</h1>
+<div class="page-header d-print-none">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">Каталог курсов</h2>
+            <p class="text-muted">Полный список доступных учебных дисциплин</p>
+        </div>
+        {% if is_methodist %}
+        <div class="col-auto ms-auto">
+            <a href="/courses/add/" class="btn btn-primary">
+                + Добавить курс
+            </a>
+        </div>
+        {% endif %}
+    </div>
 </div>
-{% if is_methodist %}
-<div class="col-auto">
-<a class="btn btn-primary" href="{% url 'course_create' %}">Добавить курс</a>
-</div>
-{% endif %}
-</div>
-</div>
+
 <div class="card">
-<div class="card-header">
-<h2 class="card-title">Курсы <span class="badge bg-primary-lt ms-2">{{ courses|length }}</span>
-</h2>
-</div>
-<div class="table-responsive">
-<table class="table table-vcenter card-table">
-<caption class="visually-hidden">Курсы</caption>
-<thead>
-<tr>
-<th scope="col">ID</th>
-<th scope="col">Название</th>
-<th scope="col">Факультет</th>
-<th scope="col">Описание</th>
-{% if is_methodist %}
-<th scope="col">Действия</th>
-{% endif %}
-</tr>
-</thead>
-<tbody>
-{% for item in courses %}
-<tr>
-<td class="">{{ item.id }}</td>
-<td class="entity-name">{{ item.title }}</td>
-<td class="">{{ item.department }}</td>
-<td class="description">{{ item.description|default:"Нет описания" }}</td>
-{% if is_methodist %}
-<td>
-<div class="row-actions">
-<a class="btn btn-sm btn-outline-primary" href="{% url 'course_update' item.pk %}" aria-label="Изменить {{ item }}">Изменить</a>
-<a class="btn btn-sm btn-outline-danger" href="{% url 'course_delete' item.pk %}" aria-label="Удалить {{ item }}">Удалить</a>
-</div>
-</td>
-{% endif %}
-</tr>
-{% empty %}
-<tr>
-<td colspan="5" class="text-center py-5">
-<p class="fw-bold mb-1">Здесь пока нет записей</p>
-<p class="text-secondary mb-0">
-{% if is_methodist %}Добавьте первую запись кнопкой выше.{% else %}Записи появятся после добавления методистом.{% endif %}
-</p>
-</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Факультет</th>
+                    <th>Описание</th>
+                    {% if is_methodist %}
+                    <th class="w-1">Действия</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td><span class="badge bg-secondary-lt">{{ course.id }}</span></td>
+                    <td>{{ course.name }}</td>
+                    <td>{{ course.department.name|default:"—" }}</td>
+                    <td class="text-muted">{{ course.description|truncatewords:10|default:"Нет описания" }}</td>
+
+                    {% if is_methodist %}
+                    <td>
+                        <div class="btn-list flex-nowrap">
+                            <a href="/courses/{{ course.pk }}/edit/" class="btn btn-sm btn-icon btn-outline-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+                            </a>
+                            <a href="/courses/{{ course.pk }}/delete/" class="btn btn-sm btn-icon btn-outline-danger">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                            </a>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">Курсы пока не добавлены</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

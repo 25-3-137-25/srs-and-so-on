@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Управление учебными группами</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css">
+    <style>
+        .status-badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; }
+        .status-recruiting { background: #dbeafe; color: #1e40af; }
+        .status-studying { background: #dcfce7; color: #166534; }
+        .status-graduated { background: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="page-wrapper">
+        <div class="container-xl py-4">
+            <h1 class="mb-4">Управление учебными группами</h1>
+
+            {% csrf_token %}
+            <div id="message" role="status" aria-live="polite"></div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title">Создать новую группу</h3>
+                </div>
+                <div class="card-body">
+                    <form id="group-form">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Номер группы</label>
+                                <input id="name" class="form-control" required placeholder="М3О-234БВ-25">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Факультет</label>
+                                <select id="faculty" class="form-select" required></select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Студентов</label>
+                                <input id="students_count" type="number" min="0" class="form-control" value="0">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button class="btn btn-primary w-100" type="submit">Создать</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Список групп</h3>
+                    <div class="card-actions">
+                        <select id="status-filter" class="form-select">
+                            <option value="">Все статусы</option>
+                            <option value="recruiting">Набор открыт</option>
+                            <option value="studying">Обучение</option>
+                            <option value="graduated">Выпущена</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="loading" hidden class="text-center py-3">Загрузка данных...</div>
+                    <div id="groups-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>
+<script src="{% static 'groups/app.js' %}"></script>
+</body>
+</html>

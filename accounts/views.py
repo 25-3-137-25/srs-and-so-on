@@ -1,379 +1,209 @@
-from django.contrib.auth.decorators import (
-    login_required,
-    user_passes_test,
-)
-from django.shortcuts import (
-    get_object_or_404,
-    redirect,
-    render,
-)
-from django.urls import reverse
-from .models import Course
-from .forms import (
-    AcademicGroupForm,
-    CourseForm,
-    DepartmentForm,
-)
-from .forms import DepartmentForm
-from .models import (
- AcademicGroup,
- Course,
- Department,
-)
-from django.db.models import Count
-from django.db.models.functions import TruncMonth
-from django.http import JsonResponse
-from django.contrib.auth.models import User
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth.models import User, Group
 from .models import Department, Course, AcademicGroup, StudentProfile
+from .forms import DepartmentForm, CourseForm, AcademicGroupForm
+from django.db.models import Count
+from django.http import JsonResponse
+from datetime import datetime, timedelta
 
 
-@login_required
-def department_list(request):
-    departments = Department.objects.all()
+# === ГЛАВНАЯ СТРАНИЦА ===
 
-    return render(
-        request,
-        'department_list.html',
-        {
-            'departments': departments,
-            'is_methodist': is_methodist(request.user),
-        }
-    )
+def home_view(request):
+    """Главная страница"""
+    is_methodist = False
+    if request.user.is_authenticated:
+        is_methodist = request.user.groups.filter(name='Методист').exists()
+    return render(request, 'home.html', {'is_methodist': is_methodist})
 
-def is_methodist(user):
-  return user.groups.filter(
-    name='Методист'
-  ).exists()
+
+# === ПРОФИЛЬ ===
 
 @login_required
 def profile(request):
-  return render(
-    request,
-    'profile.html',
-    {
-      'is_methodist': is_methodist(
-        request.user
-        )
-    }
-  )
+    """Профиль пользователя"""
+    return render(request, 'profile.html')
 
-@login_required
+
+# === КУРСЫ (Студенческий просмотр) ===
+
 def course_list(request):
+    """Список курсов для студентов"""
     courses = Course.objects.all()
+    return render(request, 'course_list.html', {'courses': courses})
 
-    return render(
-        request,
-        'course_list.html',
-        {
-            'courses': courses,
-            'is_methodist': is_methodist(request.user),
-        }
-    )
+
+# === CRUD ФАКУЛЬТЕТОВ ===
 
 @login_required
-@user_passes_test(is_methodist)
-def course_create(request):
-    if request.method == 'POST':
-        form = CourseForm(request.POST)
-
-        if form.is_valid():
-            form.save()
-            return redirect('course_list')
-    else:
-        form = CourseForm()
-
-    return render(
-        request,
-        'object_form.html',
-        {
-            'form': form,
-            'title': 'Добавление курса',
-            'cancel_url': reverse('course_list'),
-        }
-    )
-
-@login_required
-@user_passes_test(is_methodist)
-def course_update(request, pk):
-    course = get_object_or_404(
-        Course,
-        pk=pk
-    )
-
-    if request.method == 'POST':
-        form = CourseForm(
-            request.POST,
-            instance=course
-        )
-
-        if form.is_valid():
-            form.save()
-            return redirect('course_list')
-    else:
-        form = CourseForm(
-            instance=course
-        )
-
-    return render(
-        request,
-        'object_form.html',
-        {
-            'form': form,
-            'title': 'Изменение курса',
-            'cancel_url': reverse('course_list'),
-        }
-    )
-
-@login_required
-@user_passes_test(is_methodist)
-def course_delete(request, pk):
-    course = get_object_or_404(
-        Course,
-        pk=pk
-    )
-
-    if request.method == 'POST':
-        course.delete()
-        return redirect('course_list')
-
-    return render(
-        request,
-        'object_confirm_delete.html',
-        {
-            'object': course,
-            'title': 'Удаление курса',
-            'cancel_url': reverse('course_list'),
-            'deletion_warning': 'Это действие нельзя отменить.'
-        }
-    )
+def department_list(request):
+    """Список факультетов"""
+    departments = Department.objects.all()
+    return render(request, 'department_list.html', {'departments': departments})
 
 
 @login_required
-@user_passes_test(is_methodist)
 def department_create(request):
+    """Создание факультета"""
     if request.method == 'POST':
         form = DepartmentForm(request.POST)
-
         if form.is_valid():
             form.save()
+            messages.success(request, 'Факультет успешно создан!')
             return redirect('department_list')
     else:
         form = DepartmentForm()
+    return render(request, 'department_form.html', {'form': form})
 
-    return render(
-        request,
-        'object_form.html',
-        {
-            'form': form,
-            'title': 'Добавление факультета',
-            'cancel_url': reverse('department_list'),
-        }
-    )
 
 @login_required
-@user_passes_test(is_methodist)
 def department_update(request, pk):
-    department = get_object_or_404(
-        Department,
-        pk=pk
-    )
-
+    """Редактирование факультета"""
+    department = get_object_or_404(Department, pk=pk)
     if request.method == 'POST':
-        form = DepartmentForm(
-            request.POST,
-            instance=department
-        )
-
+        form = DepartmentForm(request.POST, instance=department)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Факультет успешно обновлён!')
             return redirect('department_list')
     else:
-        form = DepartmentForm(
-            instance=department
-        )
+        form = DepartmentForm(instance=department)
+    return render(request, 'department_form.html', {'form': form})
 
-    return render(
-        request,
-        'object_form.html',
-        {
-            'form': form,
-            'title': 'Изменение факультета',
-            'cancel_url': reverse('department_list'),
-        }
-    )
 
 @login_required
-@user_passes_test(is_methodist)
 def department_delete(request, pk):
-    department = get_object_or_404(
-        Department,
-        pk=pk
-    )
-
+    """Удаление факультета"""
+    department = get_object_or_404(Department, pk=pk)
     if request.method == 'POST':
         department.delete()
+        messages.success(request, 'Факультет успешно удалён!')
         return redirect('department_list')
+    return render(request, 'object_confirm_delete.html', {'object': department})
 
-    return render(
-        request,
-        'object_confirm_delete.html',
-        {
-            'object': department,
-            'title': 'Удаление факультета',
-            'cancel_url': reverse('department_list'),
-            'deletion_warning': 'Связанные курсы и группы также будут удалены.'
-        }
-    )
+
+# === CRUD УЧЕБНЫХ ГРУПП ===
 
 @login_required
 def academic_group_list(request):
+    """Список учебных групп"""
     groups = AcademicGroup.objects.all()
+    return render(request, 'academic_group_list.html', {'groups': groups})
 
-    return render(
-        request,
-        'academic_group_list.html',
-        {
-            'groups': groups,
-            'is_methodist': is_methodist(request.user),
-        }
-    )
 
 @login_required
-@user_passes_test(is_methodist)
 def academic_group_create(request):
+    """Создание учебной группы"""
     if request.method == 'POST':
         form = AcademicGroupForm(request.POST)
-
         if form.is_valid():
             form.save()
+            messages.success(request, 'Группа успешно создана!')
             return redirect('academic_group_list')
     else:
         form = AcademicGroupForm()
+    return render(request, 'academic_group_form.html', {'form': form})
 
-    return render(
-        request,
-        'object_form.html',
-        {
-            'form': form,
-            'title': 'Добавление учебной группы',
-            'cancel_url': reverse('academic_group_list'),
-        }
-    )
 
 @login_required
-@user_passes_test(is_methodist)
 def academic_group_update(request, pk):
-    group = get_object_or_404(
-        AcademicGroup,
-        pk=pk
-    )
-
+    """Редактирование учебной группы"""
+    group = get_object_or_404(AcademicGroup, pk=pk)
     if request.method == 'POST':
-        form = AcademicGroupForm(
-            request.POST,
-            instance=group
-        )
-
+        form = AcademicGroupForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Группа успешно обновлена!')
             return redirect('academic_group_list')
     else:
-        form = AcademicGroupForm(
-            instance=group
-        )
+        form = AcademicGroupForm(instance=group)
+    return render(request, 'academic_group_form.html', {'form': form})
 
-    return render(
-        request,
-        'object_form.html',
-        {
-            'form': form,
-            'title': 'Изменение учебной группы',
-            'cancel_url': reverse('academic_group_list'),
-        }
-    )
 
 @login_required
-@user_passes_test(is_methodist)
 def academic_group_delete(request, pk):
-    group = get_object_or_404(
-        AcademicGroup,
-        pk=pk
-    )
-
+    """Удаление учебной группы"""
+    group = get_object_or_404(AcademicGroup, pk=pk)
     if request.method == 'POST':
         group.delete()
+        messages.success(request, 'Группа успешно удалена!')
         return redirect('academic_group_list')
+    return render(request, 'object_confirm_delete.html', {'object': group})
 
-    return render(
-        request,
-        'object_confirm_delete.html',
-        {
-            'object': group,
-            'title': 'Удаление учебной группы',
-            'cancel_url': reverse('academic_group_list'),
-            'deletion_warning': 'Это действие нельзя отменить.'
-        }
-    )
 
+# === CRUD КУРСОВ (Методист) ===
+
+@login_required
+def course_create(request):
+    """Создание курса"""
+    if request.method == 'POST':
+        form = CourseForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Курс успешно создан!')
+            return redirect('course_list')
+    else:
+        form = CourseForm()
+    return render(request, 'course_form.html', {'form': form})
 
 
 @login_required
-@user_passes_test(is_methodist)
-def dashboard_view(request):
-    return render(request, 'dashboard/index.html')
+def course_update(request, pk):
+    """Редактирование курса"""
+    course = get_object_or_404(Course, pk=pk)
+    if request.method == 'POST':
+        form = CourseForm(request.POST, instance=course)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Курс успешно обновлён!')
+            return redirect('course_list')
+    else:
+        form = CourseForm(instance=course)
+    return render(request, 'course_form.html', {'form': form})
 
 
 @login_required
-@user_passes_test(is_methodist)
-def dashboard_api(request):
-    
-    total_students = StudentProfile.objects.count()
-    total_departments = Department.objects.count()
-    total_groups = AcademicGroup.objects.count()
-    total_courses = Course.objects.count()
+def course_delete(request, pk):
+    """Удаление курса"""
+    course = get_object_or_404(Course, pk=pk)
+    if request.method == 'POST':
+        course.delete()
+        messages.success(request, 'Курс успешно удалён!')
+        return redirect('course_list')
+    return render(request, 'object_confirm_delete.html', {'object': course})
 
-    
-    dept_stats = Department.objects.annotate(
-        student_count=Count('students', distinct=True)
-    ).values('name', 'student_count').order_by('-student_count')
 
-   
-    course_stats = Course.objects.annotate(
-        student_count=Count('students', distinct=True)
-    ).order_by('-student_count')[:5].values('title', 'student_count')
+# === ДАШБОРДЫ ===
 
-    
-    faculty_load = Department.objects.annotate(
-        student_count=Count('students', distinct=True),
-        course_count=Count('courses', distinct=True)
-    ).values('name', 'student_count', 'course_count').order_by('-student_count')
+def dashboard_hub(request):
+    """Главная страница дашбордов — хаб с карточками"""
+    is_methodist = False
+    if request.user.is_authenticated:
+        is_methodist = request.user.groups.filter(name='Методист').exists()
+    return render(request, 'includes/dashboard/dashboard.html', {'is_methodist': is_methodist})
 
-   
-    students_by_courses = {}
-    for profile in StudentProfile.objects.annotate(courses_count=Count('courses')):
-        cnt = profile.courses_count
-        bucket = '5+' if cnt >= 5 else str(cnt)
-        students_by_courses[bucket] = students_by_courses.get(bucket, 0) + 1
-    sorted_buckets = sorted(students_by_courses.keys(), key=lambda x: (len(x), x))
-    courses_distribution = [
-        {'bucket': b, 'count': students_by_courses[b]} for b in sorted_buckets
-    ]
 
-    
-    top_groups = AcademicGroup.objects.annotate(
-        student_count=Count('students', distinct=True)
-    ).order_by('-student_count')[:10].values('name', 'student_count')
+def dashboard_overview(request):
+    """Дашборд 1: Обзор системы"""
+    is_methodist = False
+    if request.user.is_authenticated:
+        is_methodist = request.user.groups.filter(name='Методист').exists()
+    return render(request, 'includes/dashboard/overview.html', {'is_methodist': is_methodist})
 
-    return JsonResponse({
-        'summary': {
-            'students': total_students,
-            'departments': total_departments,
-            'groups': total_groups,
-            'courses': total_courses,
-        },
-        'department_distribution': list(dept_stats),
-        'top_courses': list(course_stats),
-        'faculty_load': list(faculty_load),
-        'courses_distribution': courses_distribution,
-        'top_groups': list(top_groups),
-    })
+
+def dashboard_academic(request):
+    """Дашборд 2: Академическая аналитика"""
+    is_methodist = False
+    if request.user.is_authenticated:
+        is_methodist = request.user.groups.filter(name='Методист').exists()
+    return render(request, 'includes/dashboard/academic.html', {'is_methodist': is_methodist})
+
+
+def dashboard_activity(request):
+    """Дашборд 3: Активность пользователей"""
+    is_methodist = False
+    if request.user.is_authenticated:
+        is_methodist = request.user.groups.filter(name='Методист').exists()
+    return render(request, 'includes/dashboard/activity.html', {'is_methodist': is_methodist})

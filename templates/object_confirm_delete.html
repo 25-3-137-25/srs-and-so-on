@@ -1,21 +1,37 @@
-{% extends 'base.html' %}{% block title %}{{ title }}{% endblock %}{% block content %}
-<div class="form-panel mx-auto">
-<h1 class="page-title mb-4">{{ title }}</h1>
-<div class="card">
-<div class="card-status-top bg-danger">
+{% extends "base.html" %}
+
+{% block title %}Подтверждение удаления{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">Подтверждение удаления</h2>
+        </div>
+    </div>
 </div>
-<div class="card-body">
-<h2 class="card-title">Подтвердите удаление</h2>
-<p>Вы действительно хотите удалить <strong>{{ object }}</strong>?</p>
-<p class="text-secondary">{{ deletion_warning }}</p>
-<form method="post">
-{% csrf_token %}
-<div class="form-actions">
-<button class="btn btn-danger" type="submit">Удалить</button>
-<a class="btn" href="{{ cancel_url }}">Отмена</a>
-</div>
-</form>
-</div>
-</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card card-md">
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <span class="avatar avatar-xl bg-red-lt rounded">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle" width="48" height="48" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
+                    </span>
+                </div>
+                <h3 class="card-title">Вы уверены?</h3>
+                <p class="text-muted">Вы собираетесь удалить объект "<strong>{{ object }}</strong>". Это действие нельзя отменить.</p>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="submit" class="btn btn-danger">Да, удалить</button>
+                        <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-white">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

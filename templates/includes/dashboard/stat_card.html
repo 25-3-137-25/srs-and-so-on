@@ -1,0 +1,23 @@
+<div class="col-sm-6 col-lg-3">
+    <div class="card card-hover h-100 shadow-sm border-0">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <span class="avatar avatar-md {{ icon_class }} rounded-circle me-3">
+                    {{ icon_svg|safe }}
+                </span>
+                <div>
+                    <div class="subheader text-muted text-uppercase fw-bold ls-1">{{ title }}</div>
+                    <div class="h2 mb-0 mt-1" id="{{ stat_id }}">...</div>
+                </div>
+            </div>
+
+            {% if trend_id %}
+            <div class="mt-2">
+                <span id="{{ trend_id }}" class="badge bg-transparent text-muted small fw-bold">--</span>
+            </div>
+            {% endif %}
+
+            <div class="text-muted small">{{ description }}</div>
+        </div>
+    </div>
+</div>

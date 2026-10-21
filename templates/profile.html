@@ -1,37 +1,56 @@
-{% extends 'base.html' %}{% block title %}Профиль{% endblock %}{% block content %}
-<div class="page-pretitle mb-2">Личный кабинет</div>
-<h1 class="page-title mb-4">Профиль пользователя</h1>
-<div class="row g-3">
-<div class="col-lg-4">
-<div class="card">
-<div class="card-body">
-<span class="avatar avatar-xl bg-primary-lt mb-3" aria-hidden="true">{{ user.username|first|upper }}</span>
-<h2 class="card-title entity-name">{{ user.username }}</h2>
-<p class="text-secondary">Имя пользователя</p>
-<div class="d-flex flex-wrap gap-2">
-{% if user.is_superuser %}
-<span class="badge bg-danger-lt">Администратор</span>
-{% else %}
-<span class="badge bg-primary-lt">Пользователь</span>
-{% endif %}{% if is_methodist %}
-<span class="badge bg-success-lt">Методист</span>
-{% endif %}
+{% extends "base.html" %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">Мой профиль</h2>
+        </div>
+    </div>
 </div>
-</div>
-</div>
-</div>
-<div class="col-lg-8">
-<div class="card mb-4">
-<div class="card-body">
-<h2 class="card-title">Учебные разделы</h2>
-<p class="text-secondary">Просматривайте факультеты, учебные группы и доступные курсы.</p>
-<div class="form-actions">
-<a class="btn btn-primary" href="{% url 'course_list' %}">Посмотреть курсы</a>
-<a class="btn" href="{% url 'department_list' %}">Факультеты</a>
-<a class="btn" href="{% url 'academic_group_list' %}">Группы</a>
-</div>
-</div>
-</div>
-</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <span class="avatar avatar-xl me-4 rounded bg-blue-lt">
+                        <!-- Иконка пользователя -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="48" height="48" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /></svg>
+                    </span>
+                    <div>
+                        <h3 class="mb-0">{{ user.username }}</h3>
+                        <p class="text-muted mb-0">{{ user.email|default:"Email не указан" }}</p>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <dl class="row mb-0">
+                    <dt class="col-4 text-muted">Статус:</dt>
+                    <dd class="col-8">
+                        {% if is_methodist %}
+                            <span class="badge bg-purple-lt">Методист</span>
+                        {% else %}
+                            <span class="badge bg-blue-lt">Студент</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-4 text-muted mt-2">Группа:</dt>
+                    <dd class="col-8 mt-2">
+                        {{ user.studentprofile.academic_group|default:"Не назначена" }}
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer text-end">
+                <form method="post" action="/accounts/logout/">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Выйти из системы</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
