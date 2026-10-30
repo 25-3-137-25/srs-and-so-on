@@ -1,0 +1,234 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Заявки на оборудование</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/css/tabler.min.css">
+</head>
+<body class="layout-fluid">
+<div class="page">
+  <div class="page-wrapper">
+    <div class="page-header d-print-none">
+      <div class="container-xl">
+        <h1 class="page-title">Заявки на выдачу оборудования</h1>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="container-xl">
+
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="row g-2">
+              <div class="col">
+                <label class="form-label">Статус</label>
+                <select id="filter-status" class="form-select">
+                  <option value="">Все</option>
+                  <option value="draft">Создана</option>
+                  <option value="approved">Согласована</option>
+                  <option value="issued">Выдана</option>
+                  <option value="returned">Возвращена</option>
+                  <option value="rejected">Отклонена</option>
+                </select>
+              </div>
+              <div class="col">
+                <label class="form-label">Категория</label>
+                <select id="filter-category" class="form-select">
+                  <option value="">Все</option>
+                  <option value="lab">Лабораторное</option>
+                  <option value="pc">Вычислительное</option>
+                  <option value="measure">Измерительное</option>
+                  <option value="tool">Инструмент</option>
+                </select>
+              </div>
+              <div class="col-auto align-self-end">
+                <button class="btn btn-primary" onclick="loadRequests()">Применить</button>
+                <button class="btn btn-success" onclick="openCreateModal()">+ Новая заявка</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-responsive">
+            <table class="table table-vcenter card-table">
+              <thead>
+                <tr>
+                  <th>#</th><th>Оборудование</th><th>Кол-во</th>
+                  <th>Статус</th><th>Создана</th><th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="requests-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card mt-3" id="history-card" style="display:none">
+          <div class="card-header"><h3 class="card-title">История событий</h3></div>
+          <div class="card-body">
+            <ul id="history-list" class="list-group"></ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="create-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h3 class="modal-title">Новая заявка</h3></div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Оборудование</label>
+          <select id="inp-equipment" class="form-select"></select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Количество</label>
+          <input id="inp-quantity" type="number" min="1" value="1" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Цель</label>
+          <textarea id="inp-purpose" class="form-control"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeCreateModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="createRequest()">Создать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="alert-box" class="alert" style="display:none;position:fixed;top:20px;right:20px;z-index:9999"></div>
+
+<script>
+const CSRF = document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1];
+const HEADERS = {'X-CSRFToken': CSRF, 'Content-Type': 'application/json'};
+
+function showAlert(msg, type='success') {
+  const b = document.getElementById('alert-box');
+  b.className = 'alert alert-' + type;
+  b.textContent = msg;
+  b.style.display = 'block';
+  setTimeout(()=>b.style.display='none', 3500);
+}
+
+async function loadEquipmentSelect() {
+  const r = await fetch('/api/inventory/equipment/');
+  const data = await r.json();
+  const sel = document.getElementById('inp-equipment');
+  sel.innerHTML = data.map(e =>
+    `<option value="${e.id}">${e.name} (доступно: ${e.available_stock})</option>`
+  ).join('');
+}
+
+async function loadRequests() {
+  const s = document.getElementById('filter-status').value;
+  const c = document.getElementById('filter-category').value;
+  const url = `/api/inventory/requests/?status=${s}&category=${c}`;
+  const r = await fetch(url);
+  if (!r.ok) { showAlert('Ошибка загрузки', 'danger'); return; }
+  const data = await r.json();
+  const tb = document.getElementById('requests-tbody');
+  tb.innerHTML = data.map(req => `
+    <tr>
+      <td>${req.id}</td>
+      <td>${req.equipment_name}</td>
+      <td>${req.quantity}</td>
+      <td><span class="badge bg-${statusColor(req.status)}">${req.status_display}</span></td>
+      <td>${new Date(req.created_at).toLocaleString('ru-RU')}</td>
+      <td>
+        ${transitionButtons(req)}
+        <button class="btn btn-sm btn-info" onclick="showHistory(${req.id})">История</button>
+        ${req.status==='draft' ? `<button class="btn btn-sm btn-danger" onclick="deleteReq(${req.id})">Удалить</button>`:''}
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="6" class="text-center">Нет заявок</td></tr>';
+}
+
+function statusColor(s){
+  return {draft:'secondary',approved:'info',issued:'primary',returned:'success',rejected:'danger'}[s]||'secondary';
+}
+
+function transitionButtons(req){
+  const map = {
+    draft:    [['approved','Согласовать'],['rejected','Отклонить']],
+    approved: [['issued','Выдать'],['rejected','Отклонить']],
+    issued:   [['returned','Вернуть']]
+  };
+  return (map[req.status]||[]).map(([ns,label])=>
+    `<button class="btn btn-sm btn-outline-primary" onclick="transition(${req.id},'${ns}')">${label}</button>`
+  ).join(' ');
+}
+
+function openCreateModal(){
+  loadEquipmentSelect();
+  document.getElementById('create-modal').classList.add('show');
+  document.getElementById('create-modal').style.display='block';
+}
+function closeCreateModal(){
+  document.getElementById('create-modal').classList.remove('show');
+  document.getElementById('create-modal').style.display='none';
+}
+
+async function createRequest(){
+  const body = {
+    equipment: +document.getElementById('inp-equipment').value,
+    quantity: +document.getElementById('inp-quantity').value,
+    purpose: document.getElementById('inp-purpose').value
+  };
+  const r = await fetch('/api/inventory/requests/', {
+    method:'POST', headers:HEADERS, body:JSON.stringify(body)
+  });
+  if (!r.ok){
+    const e = await r.json();
+    showAlert('Ошибка: '+JSON.stringify(e),'danger'); return;
+  }
+  showAlert('Заявка создана');
+  closeCreateModal();
+  loadRequests();
+}
+
+async function transition(id, new_status){
+  const r = await fetch(`/api/inventory/requests/${id}/transition/`, {
+    method:'POST', headers:HEADERS,
+    body: JSON.stringify({new_status, comment:''})
+  });
+  if (!r.ok){
+    const e = await r.json();
+    showAlert('Запрещено: '+e.detail,'danger'); return;
+  }
+  showAlert('Статус изменён');
+  loadRequests();
+}
+
+async function deleteReq(id){
+  if (!confirm('Удалить заявку?')) return;
+  const r = await fetch(`/api/inventory/requests/${id}/`, {
+    method:'DELETE', headers:HEADERS
+  });
+  if (!r.ok){ showAlert('Ошибка удаления','danger'); return; }
+  showAlert('Удалено');
+  loadRequests();
+}
+
+async function showHistory(id){
+  const r = await fetch(`/api/inventory/requests/${id}/history/`);
+  const data = await r.json();
+  const ul = document.getElementById('history-list');
+  ul.innerHTML = data.map(e=>
+    `<li class="list-group-item">
+       <b>${e.action_display}</b> — ${e.actor_name}
+       <small class="text-muted">${new Date(e.created_at).toLocaleString('ru-RU')}</small>
+       ${e.comment?`<div>${e.comment}</div>`:''}
+     </li>`
+  ).join('');
+  document.getElementById('history-card').style.display='block';
+}
+
+loadRequests();
+</script>
+</body>
+</html>Ф

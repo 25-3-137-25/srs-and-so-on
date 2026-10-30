@@ -4,25 +4,17 @@ Django settings for django_auth project.
 
 from pathlib import Path
 import os
-import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
-if not SECRET_KEY:
-    raise ImproperlyConfigured("Set DJANGO_SECRET_KEY")
+SECRET_KEY = 'django-insecure-your-local-secret-key-change-me-12345'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
-
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
-    if host.strip()
-]
+DEBUG = True
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
@@ -42,6 +34,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "accounts",
     "groups",
+    'inventory',
 ]
 
 MIDDLEWARE = [
@@ -77,11 +70,10 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
 DATABASES = {
-    "default": dj_database_url.config(
-        default="sqlite:///db.sqlite3",
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # Password validation
@@ -101,8 +93,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = "ru-ru"
-TIME_ZONE = "Europe/Moscow"
+LANGUAGE_CODE = 'ru-ru'
+TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 

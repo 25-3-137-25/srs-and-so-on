@@ -13,6 +13,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("crud-groups/", include("groups.urls")),
     path("", include("accounts.urls")),
+    path('api/inventory/', include('inventory.urls')),
+    path('inventory/', include('inventory.ui_urls')),
 ]
 
 if settings.DEBUG:
