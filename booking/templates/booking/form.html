@@ -1,0 +1,10 @@
+   <h1>Бронирование оборудования</h1>
+   <form method="post">
+     {% csrf_token %}
+     <!-- Шаг 9, Задание 3: Вывод понятных ошибок сервера -->
+     {{ form.non_field_errors }}
+     {{ form.as_p }}
+     <button type="submit">Сохранить</button>
+   </form>
+   <br>
+   <a href="{% url 'reservation_list' %}">К списку</a>

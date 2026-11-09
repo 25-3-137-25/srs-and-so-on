@@ -1,0 +1,40 @@
+   <h1>Мои бронирования</h1>
+
+   <!-- Шаг 9, Задание 2: Форма фильтрации -->
+   <form method="get" style="margin-bottom: 20px;">
+       <label>Фильтр по оборудованию:</label>
+       <select name="equipment_id">
+           <option value="">Все</option>
+           <option value="1">Оборудование 1</option>
+           <option value="2">Оборудование 2</option>
+       </select>
+       <button type="submit">Применить</button>
+       <a href="{% url 'reservation_list' %}">Сбросить</a>
+   </form>
+
+   <a href="{% url 'reservation_create' %}">Создать бронь</a>
+
+   {% for item in items %}
+     <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+       <strong>{{ item.equipment.name }}</strong>: {{ item.start }} — {{ item.end }}
+       {% if item.is_cancelled %}
+           <span style="color: red;">(ОТМЕНЕНО)</span>
+       {% endif %}
+
+       <a href="{% url 'reservation_edit' item.pk %}">Изменить</a>
+
+       {% if not item.is_cancelled %}
+           <form method="post" action="{% url 'reservation_cancel' item.pk %}" style="display:inline;">
+               {% csrf_token %}
+               <button type="submit">Отменить</button>
+           </form>
+       {% endif %}
+
+       <form method="post" action="{% url 'reservation_delete' item.pk %}" style="display:inline;">
+           {% csrf_token %}
+           <button type="submit" style="color: red;">Удалить</button>
+       </form>
+     </div>
+   {% empty %}
+     <p>Бронирований пока нет.</p>
+   {% endfor %}

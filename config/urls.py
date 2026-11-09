@@ -15,6 +15,7 @@ urlpatterns = [
     path("", include("accounts.urls")),
     path('api/inventory/', include('inventory.urls')),
     path('inventory/', include('inventory.ui_urls')),
+    path("booking/", include("booking.urls")),
 ]
 
 if settings.DEBUG:

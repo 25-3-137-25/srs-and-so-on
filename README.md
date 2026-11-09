@@ -33,5 +33,5 @@
 
 1. Клонируйте репозиторий:
    ```bash
-   git clone <https://github.com/25-3-137-25/srs-and-so-on>
+   git clone <https://github.com/ppsluu/pz8>
    cd django_auth
